@@ -1,0 +1,64 @@
+Turbo Assembler	 Version 4.1	    02/22/25 12:01:50	    Page 1
+regframe.asm
+
+
+
+      1				     ;------------------------------------------------------------------------------
+      2				     ;				     Second Task
+      3				     ;			      Frame with info about registers
+      4				     ;				  "Resident Frame"
+      5				     ;			       (c) 2025	Muratov	Artyom
+      6				     ;------------------------------------------------------------------------------
+      7
+      8	0000			     .model tiny
+      9	0000			     .code
+     10				     org 100h
+     11
+     12	0100			     Start:
+     13	0100  BB B800				     mov  bx, 0b800h		     ; bx = VIDEOSEG
+     14	0103  8E C3				     mov  es, bx		     ; es = VIDEOSEG
+     15	0105  BB 0370				     mov  bx, 5	* 80 * 2 + 40 *	2    ; bx = offset in screen
+     16	0108  B4 4E				     mov  ah, 4eh		     ; ah = color of text
+     17	010A			     NextSymbol:
+     18	010A  E4 60				     in	  al, 60h		     ; read data from PPI port
+     19	010C  26: 89 07				     mov  es:[bx], ax		     ; al to videoseg
+     20	010F  3C 01				     cmp  al, 1			     ; if (al != 'Escape'){
+     21	0111  75 F7				     jne  NextSymbol		     ; goto NextSymbol }
+     22
+     23	0113  B8 4C00				     mov  ax, 4c00h
+     24	0116  CD 21				     int  21h
+     25
+     26				     end	     Start
+Turbo Assembler	 Version 4.1	    02/22/25 12:01:50	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/22/25"
+??FILENAME			  Text	 "regframe"
+??TIME				  Text	 "12:01:50"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 REGFRAME
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+NEXTSYMBOL			  Near	 DGROUP:010A
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0118 Word	  Public  CODE
+
