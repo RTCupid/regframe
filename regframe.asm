@@ -10,6 +10,7 @@
 org 100h
 
 Start:
+include frame.asm
                 xor  ax, ax                     ; ax = 0
                 mov  es, ax                     ; es = ax
                 mov  bx, 09h * 4                ; offset for ptr to ISR_09h
@@ -48,17 +49,39 @@ Start:
 ;------------------------------------------------------------------------------
 MY_ISR_09h      proc
                 push ax                         ; save ax in stack
-                push bx                         ; save bx in stack
+                push cx                         ; save cx in stack
+                push dx                         ; save dx in stack
+                push si                         ; save si in stack
+                push di                         ; save di in stack
                 push es                         ; save es in stack
 
-                mov  bx, 0b800h                 ; bx = VIDEOSEG
-                mov  es, bx                     ; es = VIDEOSEG
-                mov  bx, 5 * 80 * 2 + 40 * 2    ; bx = offset in screen
-                mov  ah, 4eh                    ; ah = color of text
-
                 in   al, 60h                    ; read data from PPI port
-                mov  es:[bx], ax                ; al to videoseg
+                cmp  al, 21h                    ; if (al != 'Press F1'){
+                jne  NotPressF1                 ; goto NotPressF1 }
 
+                mov  ah, 09h                    ;-----------------
+                mov  cx, 14                     ;                |
+                mov  dx, 17                     ; attributes for |
+                lea  si, Style                  ; frame          |
+                add  si, 9 * 2                  ;                |
+                mov  di, (80 - 14) * 2          ;-----------------
+                call MakeFrame                  ; Make frame for registers
+
+                ;jmp  NotReleaseF1:              ; goto NotReleaseF1:
+
+NotPressF1:
+                ;cmp  al, 3bh or 80h             ; if (al != 'Release F1'){
+                ;jne  NotReleaseF1:              ; goto NotReleaseF1: }
+
+                ;mov  ah, 09h                    ;-----------------
+                ;mov  cx, 14                     ;                |
+                ;mov  dx, 17                     ; attributes for |
+                ;lea  si, Style                  ; frame          |
+                ;add  si, 9 * 7                  ;                |
+                ;mov  di, (80 - 14) * 2          ;-----------------
+                ;call MakeFrame                  ; Make frame for registers
+
+NotReleaseF1:
                 in   al,  61h                   ; al = port 61h
                 or   al,  80h                   ; al |= 10000000b
                 out  61h, al                    ; out to 61h PPI
@@ -81,3 +104,5 @@ MY_ISR_09h      endp
 EOP:
 end             Start
 ;------------------------------------------------------------------------------
+
+
