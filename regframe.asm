@@ -10,7 +10,6 @@
 org 100h
 
 Start:
-include frame.asm
                 xor  ax, ax                     ; ax = 0
                 mov  es, ax                     ; es = ax
                 mov  bx, 09h * 4                ; offset for ptr to ISR_09h
@@ -55,6 +54,9 @@ MY_ISR_09h      proc
                 push di                         ; save di in stack
                 push es                         ; save es in stack
 
+                push cx
+                pop  dx
+
                 in   al, 60h                    ; read data from PPI port
                 cmp  al, 21h                    ; if (al != 'Press F1'){
                 jne  NotPressF1                 ; goto NotPressF1 }
@@ -67,7 +69,7 @@ MY_ISR_09h      proc
                 mov  di, (80 - 14) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
-                ;jmp  NotReleaseF1:              ; goto NotReleaseF1:
+                ;jmp  NotReleaseF1              ; goto NotReleaseF1:
 
 NotPressF1:
                 ;cmp  al, 3bh or 80h             ; if (al != 'Release F1'){
@@ -87,12 +89,16 @@ NotReleaseF1:
                 out  61h, al                    ; out to 61h PPI
                 and  al, not 80h                ; al &= 01111111b
                 out  61h, al                    ; out to 61h PPI
-                mov  al,  20h                   ; al = 20h
-                out  20h, al                    ; out to interrupt controller
+
+                ;mov  al,  20h                   ; al = 20h
+                ;out  20h, al                    ; out to interrupt controller
 
                 pop  es                         ; back es from stack
-                pop  bx                         ; back bx from stack
-                pop  ax                         ; back ax from stack
+                pop  di                         ; back di from stack
+                pop  si                         ; back si from stack
+                pop  dx                         ; back es from stack
+                pop  cx                         ; back di from stack
+                pop  ax                         ; back si from stack
 
                 db   0eah                       ; jmp
 Ofs_old_09h     dw   0                          ; offset
@@ -100,6 +106,31 @@ Seg_old_09h     dw   0                          ; segment
 
                 iret                            ; interrupt return
 MY_ISR_09h      endp
+
+include frame.asm
+
+;------------------------------------------------------------------------------
+;             2D Array of frame's symbols
+;        1.1   1.2   1.3   2.1   2.2   2.3   3.1   3.2   3.3
+Style db 0c9h, 0cdh, 0bbh, 0bah,  00h, 0bah, 0c8h, 0cdh, 0bch
+      db  03h,  03h,  03h,  03h,  00h,  03h,  03h,  03h,  03h
+      db 0dah, 0c4h, 0bfh, 0b3h,  00h, 0b3h, 0c0h, 0c4h, 0d9h
+      db "123456789"
+      db 0dch, 0dch, 0dch, 0ddh,  00h, 0deh, 0dfh, 0dfh, 0dfh
+      db 024h, 024h, 024h, 024h,  00h, 024h, 024h, 024h, 024h
+      db 0e0h, 0e1h, 0e7h, 0e1h, 0e0h, 0e7h, 0e7h, 0e1h, 0e0h
+      db 00h,   00h,  00h,  00h,  00h,  00h,  00h,  00h,  00h
+
+; 1.1 - start  symbol of first  string
+; 1.2 - middle symbol of first  string
+; 1.3 - end    symbol of first  string
+; 2.1 - start  symbol of middle strings
+; 2.2 - middle symbol of middle strings
+; 2.3 - end    symbol of middle strings
+; 3.1 - start  symbol of end    string
+; 3.2 - middle symbol of end    string
+; 3.3 - end    symbol of end    string
+;------------------------------------------------------------------------------
 
 EOP:
 end             Start
