@@ -12,9 +12,15 @@ org 100h
 Start:
                 xor  ax, ax                     ; ax = 0
                 mov  es, ax                     ; es = ax
-                mov  bx, 09h * 4                ;
+                mov  bx, 09h * 4                ; offset for ptr to ISR_09h
 
-                int  09h                        ; call old keyboard handler
+                mov  ax, es:[bx]                ; Ofs_old_09h and Seg_old_09h
+                mov  Ofs_old_09h, ax            ; from array with
+                mov  ax, es:[bx + 2]            ; ptrs to interrupt service
+                mov  Seg_old_09h, ax            ; routine
+
+
+                int  09h                        ; call old ISR 09h
 
                 cli
                 mov  es:[bx], offset MY_ISR_09h ; offset of my interrupt 09h
@@ -64,6 +70,10 @@ MY_ISR_09h      proc
                 pop  es                         ; back es from stack
                 pop  bx                         ; back bx from stack
                 pop  ax                         ; back ax from stack
+
+                db   0eah                       ; jmp
+Ofs_old_09h     dw   0                          ; offset
+Seg_old_09h     dw   0                          ; segment
 
                 iret                            ; interrupt return
 MY_ISR_09h      endp
