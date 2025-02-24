@@ -53,13 +53,14 @@ MY_ISR_09h      proc
                 push si                         ; save si in stack
                 push di                         ; save di in stack
                 push es                         ; save es in stack
+                push ds
 
-                push cx
-                pop  dx
+                push cs
+                pop  ds
 
                 in   al, 60h                    ; read data from PPI port
-                cmp  al, 21h                    ; if (al != 'Press F1'){
-                jne  NotPressF1                 ; goto NotPressF1 }
+                cmp  al, 21h                    ; if (al != 'Press F'){
+                jne  NotPressF                 ; goto NotPressF }
 
                 mov  ah, 09h                    ;-----------------
                 mov  cx, 14                     ;                |
@@ -69,9 +70,9 @@ MY_ISR_09h      proc
                 mov  di, (80 - 14) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
-                ;jmp  NotReleaseF1              ; goto NotReleaseF1:
+                ;jmp  NotReleaseF              ; goto NotReleaseF1:
 
-NotPressF1:
+NotPressF:
                 ;cmp  al, 3bh or 80h             ; if (al != 'Release F1'){
                 ;jne  NotReleaseF1:              ; goto NotReleaseF1: }
 
@@ -93,6 +94,7 @@ NotReleaseF1:
                 ;mov  al,  20h                   ; al = 20h
                 ;out  20h, al                    ; out to interrupt controller
 
+                pop  ds
                 pop  es                         ; back es from stack
                 pop  di                         ; back di from stack
                 pop  si                         ; back si from stack
@@ -106,8 +108,6 @@ Seg_old_09h     dw   0                          ; segment
 
                 iret                            ; interrupt return
 MY_ISR_09h      endp
-
-include frame.asm
 
 ;------------------------------------------------------------------------------
 ;             2D Array of frame's symbols
@@ -131,6 +131,8 @@ Style db 0c9h, 0cdh, 0bbh, 0bah,  00h, 0bah, 0c8h, 0cdh, 0bch
 ; 3.2 - middle symbol of end    string
 ; 3.3 - end    symbol of end    string
 ;------------------------------------------------------------------------------
+
+include frame.asm
 
 EOP:
 end             Start

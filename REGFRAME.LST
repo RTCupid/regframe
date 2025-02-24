@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/23/25 16:35:23	    Page 1
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 1
 regframe.asm
 
 
@@ -20,9 +20,9 @@ regframe.asm
      15	0104  BB 0024				     mov  bx, 09h * 4		     ; offset for ptr to ISR_09h
      16
      17	0107  26: 8B 07				     mov  ax, es:[bx]		     ; Ofs_old_09h and Seg_old_09h
-     18	010A  A3 0169r				     mov  Ofs_old_09h, ax	     ; from array with
+     18	010A  A3 016Br				     mov  Ofs_old_09h, ax	     ; from array with
      19	010D  26: 8B 47	02			     mov  ax, es:[bx + 2]	     ; ptrs to interrupt service
-     20	0111  A3 016Br				     mov  Seg_old_09h, ax	     ; routine
+     20	0111  A3 016Dr				     mov  Seg_old_09h, ax	     ; routine
      21
      22
      23	0114  CD 09				     int  09h			     ; call old	ISR 09h
@@ -40,7 +40,7 @@ regframe.asm
      35
      36	0125  B8 3100				     mov  ax, 3100h		     ; DOS Fn 31H: Terminate & Stay
      37										     ; Resident
-     38	0128  BA 01EBr				     mov  dx, offset EOP	     ; dx = &EOP
+     38	0128  BA 01EDr				     mov  dx, offset EOP	     ; dx = &EOP
      39	012B  D1 EA D1 EA D1 EA	D1+		     shr  dx, 4			     ; dx /= 16
      40	      EA
      41	0133  42				     inc  dx			     ; dx++
@@ -59,190 +59,200 @@ regframe.asm
      54	0139  56				     push si			     ; save si in stack
      55	013A  57				     push di			     ; save di in stack
      56	013B  06				     push es			     ; save es in stack
-     57
-Turbo Assembler	 Version 4.1	    02/23/25 16:35:23	    Page 2
+     57	013C  1E				     push ds
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 2
 regframe.asm
 
 
 
-     58	013C  51				     push cx
-     59	013D  5A				     pop  dx
-     60
-     61	013E  E4 60				     in	  al, 60h		     ; read data from PPI port
-     62	0140  3C 21				     cmp  al, 21h		     ; if (al != 'Press	F1'){
-     63	0142  75 14				     jne  NotPressF1		     ; goto NotPressF1 }
-     64
-     65	0144  B4 09				     mov  ah, 09h		     ;-----------------
-     66	0146  B9 000E				     mov  cx, 14		     ;		      |
-     67	0149  BA 0011				     mov  dx, 17		     ; attributes for |
-     68	014C  BE 01A3r				     lea  si, Style		     ; frame	      |
-     69	014F  83 C6 12				     add  si, 9	* 2		     ;		      |
-     70	0152  BF 0084				     mov  di, (80 - 14)	* 2	     ;-----------------
-     71	0155  E8 0016				     call MakeFrame		     ; Make frame for registers
-     72
-     73						     ;jmp  NotReleaseF1		     ; goto NotReleaseF1:
-     74
-     75	0158			     NotPressF1:
-     76						     ;cmp  al, 3bh or 80h	      ;	if (al != 'Release F1'){
-     77						     ;jne  NotReleaseF1:	      ;	goto NotReleaseF1: }
-     78
-     79						     ;mov  ah, 09h		      ;-----------------
-     80						     ;mov  cx, 14		      ;		       |
-     81						     ;mov  dx, 17		      ;	attributes for |
-     82						     ;lea  si, Style		      ;	frame	       |
-     83						     ;add  si, 9 * 7		      ;		       |
-     84						     ;mov  di, (80 - 14) * 2	      ;-----------------
-     85						     ;call MakeFrame		      ;	Make frame for registers
-     86
-     87	0158			     NotReleaseF1:
-     88	0158  E4 61				     in	  al,  61h		     ; al = port 61h
-     89	015A  0C 80				     or	  al,  80h		     ; al |= 10000000b
-     90	015C  E6 61				     out  61h, al		     ; out to 61h PPI
-     91	015E  24 7F				     and  al, not 80h		     ; al &= 01111111b
-     92	0160  E6 61				     out  61h, al		     ; out to 61h PPI
-     93
-     94						     ;mov  al,	20h		      ;	al = 20h
-     95						     ;out  20h,	al		      ;	out to interrupt controller
-     96
-     97	0162  07				     pop  es			     ; back es from stack
-     98	0163  5F				     pop  di			     ; back di from stack
-     99	0164  5E				     pop  si			     ; back si from stack
-    100	0165  5A				     pop  dx			     ; back es from stack
-    101	0166  59				     pop  cx			     ; back di from stack
-    102	0167  58				     pop  ax			     ; back si from stack
-    103
-    104	0168  EA				     db	  0eah			     ; jmp
-    105	0169  0000		     Ofs_old_09h     dw	  0			     ; offset
-    106	016B  0000		     Seg_old_09h     dw	  0			     ; segment
-    107
-    108	016D  CF				     iret			     ; interrupt return
-    109	016E			     MY_ISR_09h	     endp
-    110
-    111				     include frame.asm
-1   112				     ;------------------------------------------------------------------------------
-1   113				     ;				   Frame functions
-1   114				     ;------------------------------------------------------------------------------
-Turbo Assembler	 Version 4.1	    02/23/25 16:35:23	    Page 3
+     58
+     59	013D  0E				     push cs
+     60	013E  1F				     pop  ds
+     61
+     62	013F  E4 60				     in	  al, 60h		     ; read data from PPI port
+     63	0141  3C 21				     cmp  al, 21h		     ; if (al != 'Press	F'){
+     64	0143  75 14				     jne  NotPressF		    ; goto NotPressF }
+     65
+     66	0145  B4 09				     mov  ah, 09h		     ;-----------------
+     67	0147  B9 000E				     mov  cx, 14		     ;		      |
+     68	014A  BA 0011				     mov  dx, 17		     ; attributes for |
+     69	014D  BE 0170r				     lea  si, Style		     ; frame	      |
+     70	0150  83 C6 12				     add  si, 9	* 2		     ;		      |
+     71	0153  BF 0084				     mov  di, (80 - 14)	* 2	     ;-----------------
+     72	0156  E8 005F				     call MakeFrame		     ; Make frame for registers
+     73
+     74						     ;jmp  NotReleaseF		    ; goto NotReleaseF1:
+     75
+     76	0159			     NotPressF:
+     77						     ;cmp  al, 3bh or 80h	      ;	if (al != 'Release F1'){
+     78						     ;jne  NotReleaseF1:	      ;	goto NotReleaseF1: }
+     79
+     80						     ;mov  ah, 09h		      ;-----------------
+     81						     ;mov  cx, 14		      ;		       |
+     82						     ;mov  dx, 17		      ;	attributes for |
+     83						     ;lea  si, Style		      ;	frame	       |
+     84						     ;add  si, 9 * 7		      ;		       |
+     85						     ;mov  di, (80 - 14) * 2	      ;-----------------
+     86						     ;call MakeFrame		      ;	Make frame for registers
+     87
+     88	0159			     NotReleaseF1:
+     89	0159  E4 61				     in	  al,  61h		     ; al = port 61h
+     90	015B  0C 80				     or	  al,  80h		     ; al |= 10000000b
+     91	015D  E6 61				     out  61h, al		     ; out to 61h PPI
+     92	015F  24 7F				     and  al, not 80h		     ; al &= 01111111b
+     93	0161  E6 61				     out  61h, al		     ; out to 61h PPI
+     94
+     95						     ;mov  al,	20h		      ;	al = 20h
+     96						     ;out  20h,	al		      ;	out to interrupt controller
+     97
+     98	0163  1F				     pop  ds
+     99	0164  07				     pop  es			     ; back es from stack
+    100	0165  5F				     pop  di			     ; back di from stack
+    101	0166  5E				     pop  si			     ; back si from stack
+    102	0167  5A				     pop  dx			     ; back es from stack
+    103	0168  59				     pop  cx			     ; back di from stack
+    104	0169  58				     pop  ax			     ; back si from stack
+    105
+    106	016A  EA				     db	  0eah			     ; jmp
+    107	016B  0000		     Ofs_old_09h     dw	  0			     ; offset
+    108	016D  0000		     Seg_old_09h     dw	  0			     ; segment
+    109
+    110	016F  CF				     iret			     ; interrupt return
+    111	0170			     MY_ISR_09h	     endp
+    112
+    113				     ;------------------------------------------------------------------------------
+    114				     ;		   2D Array of frame's symbols
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 3
 regframe.asm
 
 
 
-1   115
-1   116				     ;------------------------------------------------------------------------------
-1   117				     ; MakeFrame     Func to make frame
-1   118				     ; Entry:	     ah	    - color of frame
-1   119				     ;		     si	    - ptr   of array of	the symbols for	frame
-1   120				     ;		     cx	    - len   of frame
-1   121				     ;		     dx	    - high  of frame
-1   122				     ;		     di	    - start of print (upper left cornel)
-1   123				     ; Exit:	     None
-1   124				     ; Destroy:	     ax, si, cx, dx, di, es
-1   125				     ;------------------------------------------------------------------------------
-1   126	016E			     MakeFrame	     proc
-1   127	016E  57				     push di			     ; save start of print in stack
-1   128	016F  BF B800				     mov  di, 0b800h		     ; VIDEOSEG
-1   129	0172  8E C7				     mov  es, di		     ; es = videoseg
-1   130	0174  5F				     pop  di			     ; back start of print
-1   131
-1   132	0175  51				     push cx			     ; save cx in stack
-1   133	0176  E8 001D				     call MakeStrFrame		     ; make first string of frame
-1   134	0179  59				     pop  cx			     ; pop cx from stack
-1   135	017A  83 EA 02				     sub  dx, 2			     ; dx -= 2;	dx = number
-1   136										     ; of middle strings
-1   137	017D			     MakeMiddle:
-1   138	017D  81 C7 00A0			     add  di, 80 * 2		     ; di to next string
-1   139	0181  51				     push cx			     ; save cx
-1   140	0182  56				     push si			     ; save si
-1   141	0183  E8 0010				     call MakeStrFrame		     ; make middle string
-1   142	0186  5E				     pop si			     ; si = &(start symbol of
-1   143										     ; middle strings)
-1   144	0187  59				     pop  cx			     ; cx = len	of frame
-1   145	0188  4A				     dec  dx			     ; dx--;
-1   146	0189  75 F2				     jne  MakeMiddle		     ; loop
-1   147
-1   148	018B  83 C6 03				     add  si, 3			     ; si = &(start symbol of
-1   149										     ; end string)
-1   150	018E  81 C7 00A0			     add  di, 80 * 2		     ; di to next string
-1   151
-1   152	0192  E8 0001				     call MakeStrFrame		     ; make end	string of frame
-1   153
-1   154	0195  C3				     ret
-1   155	0196			     MakeFrame	     endp
-1   156
-1   157				     ;------------------------------------------------------------------------------
-1   158				     ; MakeStrFrame  Func to make string of frame
-1   159				     ; Entry:	     ah	    - color of string
-1   160				     ;		     si	    - array of symbol for string
-1   161				     ;		     cx	    - len of string
-1   162				     ;		     di	    - start of print string
-1   163				     ;		     es	    - videoseg
-1   164				     ; Exit:	     None
-1   165				     ; Destroy:	     ax, cx, si
-1   166				     ;------------------------------------------------------------------------------
-1   167	0196			     MakeStrFrame    proc
-1   168	0196  57				     push di			     ; save di = start of string
-1   169
-1   170	0197  AC				     lodsb			     ; ax = first symbol of string
-1   171										     ; mov al, ds:[si] && inc si
-Turbo Assembler	 Version 4.1	    02/23/25 16:35:23	    Page 4
+    115				     ;	      1.1   1.2	  1.3	2.1   2.2   2.3	  3.1	3.2   3.3
+    116	0170  C9 CD BB BA 00 BA	C8+  Style db 0c9h, 0cdh, 0bbh,	0bah,  00h, 0bah, 0c8h,	0cdh, 0bch
+    117	      CD BC
+    118	0179  03 03 03 03 00 03	03+	   db  03h,  03h,  03h,	 03h,  00h,  03h,  03h,	 03h,  03h
+    119	      03 03
+    120	0182  DA C4 BF B3 00 B3	C0+	   db 0dah, 0c4h, 0bfh,	0b3h,  00h, 0b3h, 0c0h,	0c4h, 0d9h
+    121	      C4 D9
+    122	018B  31 32 33 34 35 36	37+	   db "123456789"
+    123	      38 39
+    124	0194  DC DC DC DD 00 DE	DF+	   db 0dch, 0dch, 0dch,	0ddh,  00h, 0deh, 0dfh,	0dfh, 0dfh
+    125	      DF DF
+    126	019D  24 24 24 24 00 24	24+	   db 024h, 024h, 024h,	024h,  00h, 024h, 024h,	024h, 024h
+    127	      24 24
+    128	01A6  E0 E1 E7 E1 E0 E7	E7+	   db 0e0h, 0e1h, 0e7h,	0e1h, 0e0h, 0e7h, 0e7h,	0e1h, 0e0h
+    129	      E1 E0
+    130	01AF  00 00 00 00 00 00	00+	   db 00h,   00h,  00h,	 00h,  00h,  00h,  00h,	 00h,  00h
+    131	      00 00
+    132
+    133				     ; 1.1 - start  symbol of first  string
+    134				     ; 1.2 - middle symbol of first  string
+    135				     ; 1.3 - end    symbol of first  string
+    136				     ; 2.1 - start  symbol of middle strings
+    137				     ; 2.2 - middle symbol of middle strings
+    138				     ; 2.3 - end    symbol of middle strings
+    139				     ; 3.1 - start  symbol of end    string
+    140				     ; 3.2 - middle symbol of end    string
+    141				     ; 3.3 - end    symbol of end    string
+    142				     ;------------------------------------------------------------------------------
+    143
+    144				     include frame.asm
+1   145				     ;------------------------------------------------------------------------------
+1   146				     ;				   Frame functions
+1   147				     ;------------------------------------------------------------------------------
+1   148
+1   149				     ;------------------------------------------------------------------------------
+1   150				     ; MakeFrame     Func to make frame
+1   151				     ; Entry:	     ah	    - color of frame
+1   152				     ;		     si	    - ptr   of array of	the symbols for	frame
+1   153				     ;		     cx	    - len   of frame
+1   154				     ;		     dx	    - high  of frame
+1   155				     ;		     di	    - start of print (upper left cornel)
+1   156				     ; Exit:	     None
+1   157				     ; Destroy:	     ax, si, cx, dx, di, es
+1   158				     ;------------------------------------------------------------------------------
+1   159	01B8			     MakeFrame	     proc
+1   160						     ;push cs
+1   161						     ;pop  ds
+1   162
+1   163	01B8  57				     push di			     ; save start of print in stack
+1   164	01B9  BF B800				     mov  di, 0b800h		     ; VIDEOSEG
+1   165	01BC  8E C7				     mov  es, di		     ; es = videoseg
+1   166	01BE  5F				     pop  di			     ; back start of print
+1   167
+1   168	01BF  51				     push cx			     ; save cx in stack
+1   169	01C0  E8 001D				     call MakeStrFrame		     ; make first string of frame
+1   170	01C3  59				     pop  cx			     ; pop cx from stack
+1   171	01C4  83 EA 02				     sub  dx, 2			     ; dx -= 2;	dx = number
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 4
 regframe.asm
 
 
 
-1   172	0198  AB				     stosw			     ; mov es:[di], ax && di +=	2
-1   173
-1   174	0199  AC				     lodsb			     ; ax = middle symbol of string
-1   175										     ; mov al, ds:[si] && inc si
-1   176	019A  83 E9 02				     sub  cx, 2			     ; cx -= 2;	cx = number
-1   177										     ; of middle symbols
-1   178	019D  F3> AB				     rep stosw			     ; mov es:[di], ax && di +=	2
-1   179										     ; cx -= 1;	cx = 0?; make loop
-1   180										     ; put all middle symbols
-1   181	019F  AC				     lodsb			     ; ax = end	symbol of string
-1   182										     ; mov al, ds:[si] && inc si
-1   183	01A0  AB				     stosw			     ; mov es:[di], ax && di +=	2
-1   184	01A1  5F				     pop  di			     ; back di = start of string
-1   185
-1   186	01A2  C3				     ret
-1   187	01A3			     MakeStrFrame    endp
-1   188
+1   172										     ; of middle strings
+1   173	01C7			     MakeMiddle:
+1   174	01C7  81 C7 00A0			     add  di, 80 * 2		     ; di to next string
+1   175	01CB  51				     push cx			     ; save cx
+1   176	01CC  56				     push si			     ; save si
+1   177	01CD  E8 0010				     call MakeStrFrame		     ; make middle string
+1   178	01D0  5E				     pop si			     ; si = &(start symbol of
+1   179										     ; middle strings)
+1   180	01D1  59				     pop  cx			     ; cx = len	of frame
+1   181	01D2  4A				     dec  dx			     ; dx--;
+1   182	01D3  75 F2				     jne  MakeMiddle		     ; loop
+1   183
+1   184	01D5  83 C6 03				     add  si, 3			     ; si = &(start symbol of
+1   185										     ; end string)
+1   186	01D8  81 C7 00A0			     add  di, 80 * 2		     ; di to next string
+1   187
+1   188	01DC  E8 0001				     call MakeStrFrame		     ; make end	string of frame
 1   189
-1   190
-    191
-    192				     ;------------------------------------------------------------------------------
-    193				     ;		   2D Array of frame's symbols
-    194				     ;	      1.1   1.2	  1.3	2.1   2.2   2.3	  3.1	3.2   3.3
-    195	01A3  C9 CD BB BA 00 BA	C8+  Style db 0c9h, 0cdh, 0bbh,	0bah,  00h, 0bah, 0c8h,	0cdh, 0bch
-    196	      CD BC
-    197	01AC  03 03 03 03 00 03	03+	   db  03h,  03h,  03h,	 03h,  00h,  03h,  03h,	 03h,  03h
-    198	      03 03
-    199	01B5  DA C4 BF B3 00 B3	C0+	   db 0dah, 0c4h, 0bfh,	0b3h,  00h, 0b3h, 0c0h,	0c4h, 0d9h
-    200	      C4 D9
-    201	01BE  31 32 33 34 35 36	37+	   db "123456789"
-    202	      38 39
-    203	01C7  DC DC DC DD 00 DE	DF+	   db 0dch, 0dch, 0dch,	0ddh,  00h, 0deh, 0dfh,	0dfh, 0dfh
-    204	      DF DF
-    205	01D0  24 24 24 24 00 24	24+	   db 024h, 024h, 024h,	024h,  00h, 024h, 024h,	024h, 024h
-    206	      24 24
-    207	01D9  E0 E1 E7 E1 E0 E7	E7+	   db 0e0h, 0e1h, 0e7h,	0e1h, 0e0h, 0e7h, 0e7h,	0e1h, 0e0h
-    208	      E1 E0
-    209	01E2  00 00 00 00 00 00	00+	   db 00h,   00h,  00h,	 00h,  00h,  00h,  00h,	 00h,  00h
-    210	      00 00
-    211
-    212				     ; 1.1 - start  symbol of first  string
-    213				     ; 1.2 - middle symbol of first  string
-    214				     ; 1.3 - end    symbol of first  string
-    215				     ; 2.1 - start  symbol of middle strings
-    216				     ; 2.2 - middle symbol of middle strings
-    217				     ; 2.3 - end    symbol of middle strings
-    218				     ; 3.1 - start  symbol of end    string
-    219				     ; 3.2 - middle symbol of end    string
-    220				     ; 3.3 - end    symbol of end    string
-    221				     ;------------------------------------------------------------------------------
-    222
-    223	01EB			     EOP:
-    224				     end	     Start
-Turbo Assembler	 Version 4.1	    02/23/25 16:35:23	    Page 5
+1   190	01DF  C3				     ret
+1   191	01E0			     MakeFrame	     endp
+1   192
+1   193				     ;------------------------------------------------------------------------------
+1   194				     ; MakeStrFrame  Func to make string of frame
+1   195				     ; Entry:	     ah	    - color of string
+1   196				     ;		     si	    - array of symbol for string
+1   197				     ;		     cx	    - len of string
+1   198				     ;		     di	    - start of print string
+1   199				     ;		     es	    - videoseg
+1   200				     ; Exit:	     None
+1   201				     ; Destroy:	     ax, cx, si
+1   202				     ;------------------------------------------------------------------------------
+1   203	01E0			     MakeStrFrame    proc
+1   204	01E0  57				     push di			     ; save di = start of string
+1   205
+1   206	01E1  AC				     lodsb			     ; ax = first symbol of string
+1   207										     ; mov al, ds:[si] && inc si
+1   208	01E2  AB				     stosw			     ; mov es:[di], ax && di +=	2
+1   209
+1   210	01E3  AC				     lodsb			     ; ax = middle symbol of string
+1   211										     ; mov al, ds:[si] && inc si
+1   212	01E4  83 E9 02				     sub  cx, 2			     ; cx -= 2;	cx = number
+1   213										     ; of middle symbols
+1   214	01E7  F3> AB				     rep stosw			     ; mov es:[di], ax && di +=	2
+1   215										     ; cx -= 1;	cx = 0?; make loop
+1   216										     ; put all middle symbols
+1   217	01E9  AC				     lodsb			     ; ax = end	symbol of string
+1   218										     ; mov al, ds:[si] && inc si
+1   219	01EA  AB				     stosw			     ; mov es:[di], ax && di +=	2
+1   220	01EB  5F				     pop  di			     ; back di = start of string
+1   221
+1   222	01EC  C3				     ret
+1   223	01ED			     MakeStrFrame    endp
+1   224
+1   225
+1   226
+    227
+    228	01ED			     EOP:
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 5
+regframe.asm
+
+
+
+    229				     end	     Start
+Turbo Assembler	 Version 4.1	    02/24/25 20:19:59	    Page 6
 Symbol Table
 
 
@@ -250,9 +260,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/23/25"
+??DATE				  Text	 "02/24/25"
 ??FILENAME			  Text	 "regframe"
-??TIME				  Text	 "16:35:23"
+??TIME				  Text	 "20:19:59"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -266,21 +276,21 @@ Symbol Name			  Type	 Value
 @MODEL				  Text	 1
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
-EOP				  Near	 DGROUP:01EB
-MAKEFRAME			  Near	 DGROUP:016E
-MAKEMIDDLE			  Near	 DGROUP:017D
-MAKESTRFRAME			  Near	 DGROUP:0196
+EOP				  Near	 DGROUP:01ED
+MAKEFRAME			  Near	 DGROUP:01B8
+MAKEMIDDLE			  Near	 DGROUP:01C7
+MAKESTRFRAME			  Near	 DGROUP:01E0
 MY_ISR_09H			  Near	 DGROUP:0136
-NOTPRESSF1			  Near	 DGROUP:0158
-NOTRELEASEF1			  Near	 DGROUP:0158
-OFS_OLD_09H			  Word	 DGROUP:0169
-SEG_OLD_09H			  Word	 DGROUP:016B
+NOTPRESSF			  Near	 DGROUP:0159
+NOTRELEASEF1			  Near	 DGROUP:0159
+OFS_OLD_09H			  Word	 DGROUP:016B
+SEG_OLD_09H			  Word	 DGROUP:016D
 START				  Near	 DGROUP:0100
-STYLE				  Byte	 DGROUP:01A3
+STYLE				  Byte	 DGROUP:0170
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  01EB Word	  Public  CODE
+  _TEXT				  16  01ED Word	  Public  CODE
 
