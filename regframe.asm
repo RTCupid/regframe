@@ -70,21 +70,21 @@ MY_ISR_09h      proc
                 mov  di, (80 - 14) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
-                ;jmp  NotReleaseF              ; goto NotReleaseF1:
+                jmp  NotPressG                  ; goto NotPressG
 
 NotPressF:
-                ;cmp  al, 3bh or 80h             ; if (al != 'Release F1'){
-                ;jne  NotReleaseF1:              ; goto NotReleaseF1: }
+                cmp  al, 22h                    ; if (al != 'Press G'){
+                jne  NotPressG                  ; goto NotPressG }
 
-                ;mov  ah, 09h                    ;-----------------
-                ;mov  cx, 14                     ;                |
-                ;mov  dx, 17                     ; attributes for |
-                ;lea  si, Style                  ; frame          |
-                ;add  si, 9 * 7                  ;                |
-                ;mov  di, (80 - 14) * 2          ;-----------------
-                ;call MakeFrame                  ; Make frame for registers
+                mov  ah, 09h                    ;-----------------
+                mov  cx, 14                     ;                |
+                mov  dx, 17                     ; attributes for |
+                lea  si, Style                  ; frame          |
+                add  si, 9 * 7                  ;                |
+                mov  di, (80 - 14) * 2          ;-----------------
+                call MakeFrame                  ; Make frame for registers
 
-NotReleaseF1:
+NotPressG:
                 in   al,  61h                   ; al = port 61h
                 or   al,  80h                   ; al |= 10000000b
                 out  61h, al                    ; out to 61h PPI
