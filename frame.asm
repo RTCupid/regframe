@@ -13,8 +13,6 @@
 ; Destroy:      ax, si, cx, dx, di, es
 ;------------------------------------------------------------------------------
 MakeFrame       proc
-                ;push cs
-                ;pop  ds
 
                 push di                         ; save start of print in stack
                 mov  di, 0b800h                 ; VIDEOSEG

@@ -47,6 +47,10 @@ Start:
 ; Destroy:      None
 ;------------------------------------------------------------------------------
 MY_ISR_09h      proc
+                nop
+                nop
+                nop
+                nop
                 push ax                         ; save ax in stack
                 push cx                         ; save cx in stack
                 push dx                         ; save dx in stack
@@ -70,6 +74,8 @@ MY_ISR_09h      proc
                 mov  di, (80 - 14) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
+                call ShowRegisters              ; Show info about registers
+
                 jmp  NotPressG                  ; goto NotPressG
 
 NotPressF:
@@ -82,7 +88,7 @@ NotPressF:
                 lea  si, Style                  ; frame          |
                 add  si, 9 * 7                  ;                |
                 mov  di, (80 - 14) * 2          ;-----------------
-                call MakeFrame                  ; Make frame for registers
+                call MakeFrame                  ; Make empty box
 
 NotPressG:
                 in   al,  61h                   ; al = port 61h
@@ -105,21 +111,81 @@ NotPressG:
                 db   0eah                       ; jmp
 Ofs_old_09h     dw   0                          ; offset
 Seg_old_09h     dw   0                          ; segment
-
+                nop
+                nop
+                nop
+                nop
+                nop
                 iret                            ; interrupt return
 MY_ISR_09h      endp
 
 ;------------------------------------------------------------------------------
-;             2D Array of frame's symbols
-;        1.1   1.2   1.3   2.1   2.2   2.3   3.1   3.2   3.3
-Style db 0c9h, 0cdh, 0bbh, 0bah,  00h, 0bah, 0c8h, 0cdh, 0bch
-      db  03h,  03h,  03h,  03h,  00h,  03h,  03h,  03h,  03h
-      db 0dah, 0c4h, 0bfh, 0b3h,  00h, 0b3h, 0c0h, 0c4h, 0d9h
-      db "123456789"
-      db 0dch, 0dch, 0dch, 0ddh,  00h, 0deh, 0dfh, 0dfh, 0dfh
-      db 024h, 024h, 024h, 024h,  00h, 024h, 024h, 024h, 024h
-      db 0e0h, 0e1h, 0e7h, 0e1h, 0e0h, 0e7h, 0e7h, 0e1h, 0e0h
-      db 00h,   00h,  00h,  00h,  00h,  00h,  00h,  00h,  00h
+; ShowRegisters Func to show information about registers
+; Entry:        ax - parrent value of ax
+;               bx - parrent value of bx
+;               cx - parrent value of cx
+;               dx - parrent value of dx
+; Exit:         None
+; Destroy:      si, cx, di, es
+;------------------------------------------------------------------------------
+ShowRegisters   proc
+                push ds
+                push cs
+                pop  ds
+
+                mov  di, 0b800h                 ; VIDEOSEG
+                mov  es, di                     ; es = videoseg
+
+                mov  di, 80 * 2 * 2 + (80 - 11) * 2  ; offs + third string
+
+                lea  si, TextReg                ; si = start of TextReg
+
+                mov  dx, 4                      ; number of registers
+                mov  cx, 3                      ; number of symbols in string
+NewChar:
+                lodsb                           ; mov al, ds:[si]
+                                                ; inc si
+                stosw                           ; mov es:[di], ax && di += 2
+                loop NewChar                    ; goto NewChar}
+
+                add  di, (80 - 2) * 2           ; new string
+
+                dec  dx                         ; if (--dx == 0) {
+                jne  NewChar                    ; goto NewChar }
+
+                pop  ds
+
+                ret
+ShowRegisters   endp
+
+;------------------------------------------------------------------------------
+; ShowRegValue  Func to put to videoseg hex value of register
+; Entry:        ax - value to videoseg
+;               di - start of print
+;               es - videoseg
+; Exit:         None
+; Destroy:
+;------------------------------------------------------------------------------
+ShowRegValue    proc
+
+
+                ret
+ShowRegValue    endp
+
+
+
+TextReg         db "ax bx cx dx "
+;------------------------------------------------------------------------------
+;                               2D Array of frame's symbols
+;                   1.1   1.2   1.3   2.1   2.2   2.3   3.1   3.2   3.3
+Style           db 0c9h, 0cdh, 0bbh, 0bah,  00h, 0bah, 0c8h, 0cdh, 0bch
+                db  03h,  03h,  03h,  03h,  00h,  03h,  03h,  03h,  03h
+                db 0dah, 0c4h, 0bfh, 0b3h,  00h, 0b3h, 0c0h, 0c4h, 0d9h
+                db "123456789"
+                db 0dch, 0dch, 0dch, 0ddh,  00h, 0deh, 0dfh, 0dfh, 0dfh
+                db 024h, 024h, 024h, 024h,  00h, 024h, 024h, 024h, 024h
+                db 0e0h, 0e1h, 0e7h, 0e1h, 0e0h, 0e7h, 0e7h, 0e1h, 0e0h
+                db 00h,   00h,  00h,  00h,  00h,  00h,  00h,  00h,  00h
 
 ; 1.1 - start  symbol of first  string
 ; 1.2 - middle symbol of first  string
