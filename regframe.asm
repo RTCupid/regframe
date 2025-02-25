@@ -79,7 +79,6 @@ MY_ISR_09h      proc
                 push ds                         ; save ds in stack
                 push dx                         ; save dx in stack
                 push cx                         ; save cx in stack
-                push bx                         ; save bx in stack
                 push ax                         ; save ax in stack
 
                 push cs
@@ -128,7 +127,6 @@ NotPressG:
                 ;out  20h, al                    ; out to interrupt controller
 
                 pop  ax                         ; back ax from stack
-                pop  bx                         ; back bx from stack
                 pop  cx                         ; back cx from stack
                 pop  dx                         ; back dx from stack
                 pop  ds                         ; back ds from stack
