@@ -97,6 +97,9 @@ MY_ISR_09h      proc
                 mov  di, (80 - 18) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
+                call PrintRegNames              ; Print names of registers
+                                                ; to write near their status
+
                 ;pop  ax                         ;------------------------
                 ;pop  bx                         ; return parrent value  |
                 ;pop  cx                         ; of registers          |
@@ -201,32 +204,20 @@ Seg_old_08h     dw   0                          ; segment old ISR_08h
 MY_ISR_08h      endp
 
 ;------------------------------------------------------------------------------
-; ShowRegisters Func to show information about registers
-; Entry:        ax - parrent value of ax
-;               bx - parrent value of bx
-;               cx - parrent value of cx
-;               dx - parrent value of dx
+; PrintRegNames func to output in screen base for showing registers status
+; Entry:        TextReg - string of text
 ; Exit:         None
-; Destroy:      si, di, es, ax, bx, cx, dx
+; Destroy:      di, es, si, ax, cx, dx
 ;------------------------------------------------------------------------------
-ShowRegisters   proc
-                push ds                         ; save ds in stack
-                                                ;------------------------
-                push dx                         ;                       |
-                push cx                         ; registers to print    |
-                push bx                         ;                       |
-                push ax                         ;------------------------
-
-
-                push cs
-                pop  ds                         ; ds = cs
+PrintRegNames   proc
 
                 mov  di, 0b800h                 ; VIDEOSEG
                 mov  es, di                     ; es = videoseg
 
+;---------------displaying just text on the screen-----------------------------
+
                 mov  di, 80 * 2 * 2 + (80 - 15) * 2  ; third string + offset
                                                 ; di - start pos of text
-;---------------displaying just text on the screen-----------------------------
 
                 lea  si, TextReg                ; si = start of TextReg
                 mov  ah, 09h                    ; color of text
@@ -244,6 +235,34 @@ NewChar:
 
                 dec  dx                         ; if (--dx == 0) {
                 jne  NewRegisters               ; goto NewRegisters }
+
+                ret
+PrintRegNames   endp
+
+;------------------------------------------------------------------------------
+; ShowRegisters Func to show information about registers
+; Entry:        ax - parrent value of ax
+;               bx - parrent value of bx
+;               cx - parrent value of cx
+;               dx - parrent value of dx
+; Exit:         None
+; Destroy:      si, di, es, ax, bx, cx, dx
+;------------------------------------------------------------------------------
+ShowRegisters   proc
+                push ds                         ; save ds in stack
+                                                ;------------------------
+                push dx                         ;                       |
+                push cx                         ; registers to print    |
+                push bx                         ;                       |
+                push ax                         ;------------------------
+
+                push cs
+                pop  ds                         ; ds = cs
+
+                mov  di, 0b800h                 ; VIDEOSEG
+                mov  es, di                     ; es = videoseg
+
+                mov  ah, 09h                    ; color of text
 
 ;---------------displaying the register status on the screen-------------------
 
