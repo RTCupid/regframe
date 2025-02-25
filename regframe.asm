@@ -19,6 +19,8 @@ Start:
                 mov  ax, es:[bx + 2]            ; ptrs to interrupt service
                 mov  Seg_old_09h, ax            ; routine
 
+                ;call ShowRegisters
+
 
                 int  09h                        ; call old ISR 09h
 
@@ -136,11 +138,12 @@ ShowRegisters   proc
                 mov  di, 0b800h                 ; VIDEOSEG
                 mov  es, di                     ; es = videoseg
 
-                mov  di, 80 * 2 * 2 + (80 - 11) * 2  ; offs + third string
+                mov  di, 80 * 2 * 2 + (80 - 11) * 2  ; third string + offset
 
                 lea  si, TextReg                ; si = start of TextReg
 
                 mov  dx, 4                      ; number of registers
+NewRegisters:
                 mov  cx, 3                      ; number of symbols in string
 NewChar:
                 lodsb                           ; mov al, ds:[si]
@@ -148,10 +151,10 @@ NewChar:
                 stosw                           ; mov es:[di], ax && di += 2
                 loop NewChar                    ; goto NewChar}
 
-                add  di, (80 - 2) * 2           ; new string
+                add  di, (80 - 3) * 2           ; new string
 
                 dec  dx                         ; if (--dx == 0) {
-                jne  NewChar                    ; goto NewChar }
+                jne  NewRegisters               ; goto NewRegisters }
 
                 pop  ds
 
