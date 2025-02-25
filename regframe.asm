@@ -19,7 +19,8 @@ Start:
                 mov  ax, es:[bx + 2]            ; ptrs to interrupt service
                 mov  Seg_old_09h, ax            ; routine
 
-                ;call ShowRegisters
+                mov  al, 0ah
+                call PrintOneHexNumber          ; print hex al
 
 
                 int  09h                        ; call old ISR 09h
@@ -186,7 +187,7 @@ NewRegValue:
                                                 ; from stack
                 call PrintHex                   ; value bx to videoseg
 
-                add  di, (80 - 1) * 2           ; new string
+                add  di, (80 - 4) * 2           ; new string
 
                 loop NewRegValue                ; if (--cx) goto NewRegValue
 
@@ -202,40 +203,82 @@ ShowRegisters   endp
 ;               di - start of print
 ;               es - videoseg
 ; Exit:         None
-; Destroy:
+; Destroy:      di, al
 ;------------------------------------------------------------------------------
 PrintHex        proc
 ;-----------------------------------------
 ;               For example:     19a4    |
 ;-----------------------------------------                 ---------------
+
+;---------------First-number---------------------------------------------------
+;                                                          ---------------
                 mov  al, bh                     ; al  = bh | ex: al = 19 |
 ;                                                          ---------------
-;---------------First-number---------------------------------------------------
 ;                                                          ---------------
                 shr  al, 4                      ; al /= 16 | ex: al = 1  |
 ;                                                          ---------------
+                call PrintOneHexNumber          ; print hex al
+
+;---------------Second-Number--------------------------------------------------
+;                                                          ---------------
+                mov  al, bh                     ; al  = bh | ex: al = 19 |
+;                                                          ---------------
+                and  al, 0Fh                    ; al &= 00001111b
+;                                                          ---------------
+;                                                          | ex: al = 9  |
+;                                                          ---------------
+                call PrintOneHexNumber          ; print hex al
+
+;---------------Third-Number---------------------------------------------------
+;                                                          ---------------
+                mov  al, bl                     ; al = bl  | ex: al = a4 |
+;                                                          ---------------
+;                                                          ---------------
+                shr  al, 4                      ; al /= 16 | ex: al = a  |
+;                                                          ---------------
+                call PrintOneHexNumber          ; print hex al
+
+;---------------Fourth-Number--------------------------------------------------
+;                                                          ---------------
+                mov  al, bl                     ; al  = bh | ex: al = a4 |
+;                                                          ---------------
+                and  al, 0Fh                    ; al &= 00001111b
+;                                                          ---------------
+;                                                          | ex: al = 4  |
+;                                                          ---------------
+                call PrintOneHexNumber          ; print hex al
+
+                ret
+PrintHex        endp
+
+;------------------------------------------------------------------------------
+; PrintOneHexNumber Func to print one hex number to screen
+; Entry:        es - videoseg
+;               ah - color
+;               al - hex number
+;               di - start of print
+; Exit:         di - end of print
+; Destroy: di
+;------------------------------------------------------------------------------
+PrintOneHexNumber proc
+
                 cmp  al, 9                      ; if (al > 9) {
 
-                ja   IsHexLetter                ; goto IsHexLetter }
+                ja   IsHexLetter                ; goto IsHexLetter1 }
 
                 add  al, 30h                    ; ax = hex of number
 
                 stosw                           ; mov es:[di], ax && di += 2
 
-                jmp  SecondNumber               ; goto SecondNumber
+                jmp  NextNumber                 ; goto NextNumber
 
 IsHexLetter:
-                add  al, 31h                    ; hex of letter A - F in number
+                add  al, 37h                    ; hex of letter A - F in number
 
                 stosw                           ; mov es:[di], ax && di += 2
-
-;---------------Second-Number--------------------------------------------------
-SecondNumber:                                   ;          ---------------
-                ;mov  al, bh                     ; al  = bh | ex: al = 19 |
-;                                                          ---------------
-                ;or   al,
+NextNumber:
                 ret
-PrintHex        endp
+PrintOneHexNumber endp
 
 ;------------------------------------------------------------------------------
 
