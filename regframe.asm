@@ -99,17 +99,7 @@ MY_ISR_09h      proc
 
                 call PrintRegNames              ; Print names of registers
                                                 ; to write near their status
-
-                ;pop  ax                         ;------------------------
-                ;pop  bx                         ; return parrent value  |
-                ;pop  cx                         ; of registers          |
-                ;pop  dx                         ;------------------------
-                ;push dx                         ;------------------------
-                ;push cx                         ; save ax bx cx dx in   |
-                ;push bx                         ; stack again           |
-                ;push ax                         ;------------------------
-
-                ;call ShowRegisters              ; Show info about registers
+                mov  cs:isEnabled, 1            ; frame with reg enabled
 
                 jmp  NotPressG                  ; goto NotPressG
 
@@ -124,6 +114,8 @@ NotPressF:
                 add  si, 9 * 7                  ;                |
                 mov  di, (80 - 18) * 2          ;-----------------
                 call MakeFrame                  ; Make empty box
+
+                mov  cs:isEnabled, 0            ; frame with reg disabled
 
 NotPressG:
                 in   al,  61h                   ; al = port 61h
@@ -147,6 +139,7 @@ NotPressG:
                 db   0eah                       ; jmp
 Ofs_old_09h     dw   0                          ; offset
 Seg_old_09h     dw   0                          ; segment
+isEnabled       db   0
                 nop
                 nop
                 nop
@@ -178,8 +171,12 @@ MY_ISR_08h      proc
                 push cs
                 pop  ds                         ; ds = cs
 
+                cmp  isEnabled, 0               ; if (!isEnabled) {
+                je   DontShowRegisters          ; goto DontShowRegisters }
+
                 call ShowRegisters              ; Show info about registers
 
+DontShowRegisters:
                 ;mov  al,  20h                   ; al = 20h
                 ;out  20h, al                    ; out to interrupt controller
 
