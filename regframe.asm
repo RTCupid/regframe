@@ -73,7 +73,7 @@ MY_ISR_09h      proc
                 mov  dx, 17                     ; attributes for |
                 lea  si, Style                  ; frame          |
                 add  si, 9 * 2                  ;                |
-                mov  di, (80 - 14) * 2          ;-----------------
+                mov  di, (80 - 18) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
 
                 call ShowRegisters              ; Show info about registers
@@ -89,7 +89,7 @@ NotPressF:
                 mov  dx, 17                     ; attributes for |
                 lea  si, Style                  ; frame          |
                 add  si, 9 * 7                  ;                |
-                mov  di, (80 - 14) * 2          ;-----------------
+                mov  di, (80 - 18) * 2          ;-----------------
                 call MakeFrame                  ; Make empty box
 
 NotPressG:
@@ -138,7 +138,7 @@ ShowRegisters   proc
                 mov  di, 0b800h                 ; VIDEOSEG
                 mov  es, di                     ; es = videoseg
 
-                mov  di, 80 * 2 * 2 + (80 - 11) * 2  ; third string + offset
+                mov  di, 80 * 2 * 2 + (80 - 15) * 2  ; third string + offset
 
                 lea  si, TextReg                ; si = start of TextReg
 

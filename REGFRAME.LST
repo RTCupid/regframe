@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 1
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 1
 regframe.asm
 
 
@@ -60,7 +60,7 @@ regframe.asm
      55	0138  90				     nop
      56	0139  90				     nop
      57	013A  50				     push ax			     ; save ax in stack
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 2
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 2
 regframe.asm
 
 
@@ -84,7 +84,7 @@ regframe.asm
      74	014E  BA 0011				     mov  dx, 17		     ; attributes for |
      75	0151  BE 01C5r				     lea  si, Style		     ; frame	      |
      76	0154  83 C6 12				     add  si, 9	* 2		     ;		      |
-     77	0157  BF 0084				     mov  di, (80 - 14)	* 2	     ;-----------------
+     77	0157  BF 007C				     mov  di, (80 - 18)	* 2	     ;-----------------
      78	015A  E8 00B0				     call MakeFrame		     ; Make frame for registers
      79
      80	015D  E8 0037				     call ShowRegisters		     ; Show info about registers
@@ -100,7 +100,7 @@ regframe.asm
      90	016C  BA 0011				     mov  dx, 17		     ; attributes for |
      91	016F  BE 01C5r				     lea  si, Style		     ; frame	      |
      92	0172  83 C6 3F				     add  si, 9	* 7		     ;		      |
-     93	0175  BF 0084				     mov  di, (80 - 14)	* 2	     ;-----------------
+     93	0175  BF 007C				     mov  di, (80 - 18)	* 2	     ;-----------------
      94	0178  E8 0092				     call MakeFrame		     ; Make empty box
      95
      96	017B			     NotPressG:
@@ -122,7 +122,7 @@ regframe.asm
     112	018B  58				     pop  ax			     ; back si from stack
     113
     114	018C  EA				     db	  0eah			     ; jmp
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 3
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 3
 regframe.asm
 
 
@@ -154,7 +154,7 @@ regframe.asm
     139	019A  BF B800				     mov  di, 0b800h		     ; VIDEOSEG
     140	019D  8E C7				     mov  es, di		     ; es = videoseg
     141
-    142	019F  BF 01CA				     mov  di, 80 * 2 * 2 + (80 - 11) * 2  ; third string + offset
+    142	019F  BF 01C2				     mov  di, 80 * 2 * 2 + (80 - 15) * 2  ; third string + offset
     143
     144	01A2  BE 01B9r				     lea  si, TextReg		     ; si = start of TextReg
     145
@@ -184,7 +184,7 @@ regframe.asm
     169				     ;		     es	- videoseg
     170				     ; Exit:	     None
     171				     ; Destroy:
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 4
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 4
 regframe.asm
 
 
@@ -246,7 +246,7 @@ regframe.asm
 1   226				     ; Exit:	     None
 1   227				     ; Destroy:	     ax, si, cx, dx, di, es
 1   228				     ;------------------------------------------------------------------------------
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 5
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 5
 regframe.asm
 
 
@@ -308,7 +308,7 @@ regframe.asm
 1   283										     ; cx -= 1;	cx = 0?; make loop
 1   284										     ; put all middle symbols
 1   285	023E  AC				     lodsb			     ; ax = end	symbol of string
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 6
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 6
 regframe.asm
 
 
@@ -325,7 +325,7 @@ regframe.asm
     295
     296	0242			     EOP:
     297				     end	     Start
-Turbo Assembler	 Version 4.1	    02/25/25 10:07:10	    Page 7
+Turbo Assembler	 Version 4.1	    02/25/25 10:10:21	    Page 7
 Symbol Table
 
 
@@ -335,7 +335,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "02/25/25"
 ??FILENAME			  Text	 "regframe"
-??TIME				  Text	 "10:07:10"
+??TIME				  Text	 "10:10:21"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
