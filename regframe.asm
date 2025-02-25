@@ -53,16 +53,17 @@ MY_ISR_09h      proc
                 nop
                 nop
                 nop
-                push ax                         ; save ax in stack
-                push cx                         ; save cx in stack
-                push dx                         ; save dx in stack
                 push si                         ; save si in stack
                 push di                         ; save di in stack
                 push es                         ; save es in stack
-                push ds
+                push ds                         ; save ds in stack
+                push dx                         ; save dx in stack
+                push cx                         ; save cx in stack
+                push bx                         ; save bx in stack
+                push ax                         ; save ax in stack
 
                 push cs
-                pop  ds
+                pop  ds                         ; ds = cs
 
                 in   al, 60h                    ; read data from PPI port
                 cmp  al, 21h                    ; if (al != 'Press F'){
@@ -75,6 +76,15 @@ MY_ISR_09h      proc
                 add  si, 9 * 2                  ;                |
                 mov  di, (80 - 18) * 2          ;-----------------
                 call MakeFrame                  ; Make frame for registers
+
+                pop  ax                         ;------------------------
+                pop  bx                         ; return parrent value  |
+                pop  cx                         ; of registers          |
+                pop  dx                         ;------------------------
+                push dx                         ;------------------------
+                push cx                         ; save ax bx cx dx in   |
+                push bx                         ; stack again           |
+                push ax                         ;------------------------
 
                 call ShowRegisters              ; Show info about registers
 
@@ -102,13 +112,14 @@ NotPressG:
                 ;mov  al,  20h                   ; al = 20h
                 ;out  20h, al                    ; out to interrupt controller
 
-                pop  ds
+                pop  ax                         ; back ax from stack
+                pop  bx                         ; back bx from stack
+                pop  cx                         ; back cx from stack
+                pop  dx                         ; back dx from stack
+                pop  ds                         ; back ds from stack
                 pop  es                         ; back es from stack
                 pop  di                         ; back di from stack
                 pop  si                         ; back si from stack
-                pop  dx                         ; back es from stack
-                pop  cx                         ; back di from stack
-                pop  ax                         ; back si from stack
 
                 db   0eah                       ; jmp
 Ofs_old_09h     dw   0                          ; offset
@@ -131,16 +142,26 @@ MY_ISR_09h      endp
 ; Destroy:      si, cx, di, es
 ;------------------------------------------------------------------------------
 ShowRegisters   proc
-                push ds
+                push ds                         ; save ds in stack
+                                                ;------------------------
+                push dx                         ;                       |
+                push cx                         ; registers to print    |
+                push bx                         ;                       |
+                push ax                         ;------------------------
+
+
                 push cs
-                pop  ds
+                pop  ds                         ; ds = cs
 
                 mov  di, 0b800h                 ; VIDEOSEG
                 mov  es, di                     ; es = videoseg
 
                 mov  di, 80 * 2 * 2 + (80 - 15) * 2  ; third string + offset
+                                                ; di - start pos of text
+;---------------displaying just text on the screen-----------------------------
 
                 lea  si, TextReg                ; si = start of TextReg
+                mov  ah, 09h                    ; color of text
 
                 mov  dx, 4                      ; number of registers
 NewRegisters:
@@ -156,28 +177,70 @@ NewChar:
                 dec  dx                         ; if (--dx == 0) {
                 jne  NewRegisters               ; goto NewRegisters }
 
-                pop  ds
+;---------------displaying the register status on the screen-------------------
+
+                mov  di, 80 * 2 * 2 + (80 - 12) * 2  ; third string + offset
+                mov  cx, 4                      ; cx = number of registers
+NewRegValue:
+                pop  bx                         ; bx = value of some register
+                                                ; from stack
+                call PrintHex                   ; value bx to videoseg
+
+                add  di, (80 - 1) * 2           ; new string
+
+                loop NewRegValue                ; if (--cx) goto NewRegValue
+
+                pop  ds                         ; back ds from stack
 
                 ret
 ShowRegisters   endp
 
 ;------------------------------------------------------------------------------
-; ShowRegValue  Func to put to videoseg hex value of register
-; Entry:        ax - value to videoseg
+; PrintHex      Func to print to videoseg hex number
+; Entry:        ah - color of print
+;               bx - value to videoseg
 ;               di - start of print
 ;               es - videoseg
 ; Exit:         None
 ; Destroy:
 ;------------------------------------------------------------------------------
-ShowRegValue    proc
+PrintHex        proc
+;-----------------------------------------
+;               For example:     19a4    |
+;-----------------------------------------                 ---------------
+                mov  al, bh                     ; al  = bh | ex: al = 19 |
+;                                                          ---------------
+;---------------First-number---------------------------------------------------
+;                                                          ---------------
+                shr  al, 4                      ; al /= 16 | ex: al = 1  |
+;                                                          ---------------
+                cmp  al, 9                      ; if (al > 9) {
 
+                ja   IsHexLetter                ; goto IsHexLetter }
 
+                add  al, 30h                    ; ax = hex of number
+
+                stosw                           ; mov es:[di], ax && di += 2
+
+                jmp  SecondNumber               ; goto SecondNumber
+
+IsHexLetter:
+                add  al, 31h                    ; hex of letter A - F in number
+
+                stosw                           ; mov es:[di], ax && di += 2
+
+;---------------Second-Number--------------------------------------------------
+SecondNumber:                                   ;          ---------------
+                ;mov  al, bh                     ; al  = bh | ex: al = 19 |
+;                                                          ---------------
+                ;or   al,
                 ret
-ShowRegValue    endp
+PrintHex        endp
 
-
+;------------------------------------------------------------------------------
 
 TextReg         db "ax bx cx dx "
+
 ;------------------------------------------------------------------------------
 ;                               2D Array of frame's symbols
 ;                   1.1   1.2   1.3   2.1   2.2   2.3   3.1   3.2   3.3
@@ -206,5 +269,3 @@ include frame.asm
 EOP:
 end             Start
 ;------------------------------------------------------------------------------
-
-
