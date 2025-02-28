@@ -15,14 +15,13 @@ Start:
                 mov  es, ax                     ; es = ax
                 mov  bx, 09h * 4                ; offset for ptr to ISR_09h
 
+                cli
                 mov  ax, es:[bx]                ; Ofs_old_09h and Seg_old_09h
                 mov  Ofs_old_09h, ax            ; from array with
                 mov  ax, es:[bx + 2]            ; ptrs to interrupt service
                 mov  Seg_old_09h, ax            ; routine
 
-                int  09h                        ; call old ISR 09h
 
-                cli
                 mov  es:[bx], offset MY_ISR_09h ; offset of my interrupt 09h
                                                 ; service routiny
                 push cs
@@ -30,20 +29,17 @@ Start:
                 mov  es:[bx + 2], ax            ; segment of my interrupt 08h
                 sti
 
-                int  09h                        ; call old ISR 09h
 
 ;---------------intercept-interrupt-08h----------------------------------------
 
                 mov  bx, 08h * 4                ; offset for ptr to ISR_08h
 
+                cli
                 mov  ax, es:[bx]                ; Ofs_old_09h and Seg_old_09h
                 mov  Ofs_old_08h, ax            ; from array with
                 mov  ax, es:[bx + 2]            ; ptrs to interrupt service
                 mov  Seg_old_08h, ax            ; routine
 
-                int  08h
-
-                cli
                 mov  es:[bx], offset MY_ISR_08h ; offset of my interrupt 08h
                                                 ; service routiny
                 push cs
